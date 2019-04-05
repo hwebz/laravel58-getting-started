@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Project;
 use App\Services\Twitter;
 use Illuminate\Support\Facades\Mail;
+use App\Events\ProjectCreated;
 
 class ProjectsController extends Controller
 {
@@ -27,7 +28,8 @@ class ProjectsController extends Controller
          * auth()->check() // logged in?
          * auth()->guest()
          */
-        $projects = Project::where('owner_id', auth()->id())->get();
+        // $projects = Project::where('owner_id', auth()->id())->get();
+        $projects = auth()->user()->projects;
 
         cache()->rememberForever('stats', function() {
             return ['lessons' => 1300, 'hours' => 5000, 'series' => 300];
@@ -46,10 +48,11 @@ class ProjectsController extends Controller
     }
 
     public function store() {
-        $validated = request()->validate([
-            'title' => 'required|min:3',
-            'description' => ['required', 'min:3', 'max:255']
-        ]);
+        // $validated = request()->validate([
+        //     'title' => 'required|min:3',
+        //     'description' => ['required', 'min:3', 'max:255']
+        // ]);
+        $validated = $this->validatedProject();
 
         $project = Project::create($validated + ['owner_id' => auth()->id()]);
         // Project::create(request(['title', 'description']));
@@ -85,11 +88,12 @@ class ProjectsController extends Controller
          * php artisan route:clear
          * php artisan config:clear
          * php artisan config:cache
+         * doing in model hooks Project Model
          */
-        Mail::to('hadm.haui@gmail.com')->send(
-            new \App\Mail\ProjectCreated($project)
-        );
-
+        // Mail::to($project->owner->email)->send(
+        //     new \App\Mail\ProjectCreated($project)
+        // );
+        event(new ProjectCreated($project));
         return redirect('/projects');
     }
 
@@ -144,7 +148,11 @@ class ProjectsController extends Controller
 
     public function update(Project $project) {
 
-        $project->update(request(['title', 'description']));
+        // $project->update(request()->validate([
+        //     'title' => 'required|min:3',
+        //     'description' => ['required', 'min:3', 'max:255']
+        // ]));
+        $project->update($this->validatedProject());
         return redirect('/projects');
     }
 
@@ -160,5 +168,12 @@ class ProjectsController extends Controller
 
         $project->delete();
         return redirect('/projects');
+    }
+
+    public function validatedProject() {
+        return request()->validate([
+            'title' => 'required|min:3',
+            'description' => ['required', 'min:3', 'max:255']
+        ]);
     }
 }

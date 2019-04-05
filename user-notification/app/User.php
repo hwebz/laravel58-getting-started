@@ -5,11 +5,11 @@ namespace App;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use App\Project;
 
 class User extends Authenticatable
 {
-    use Notifiable;
+    // fetch all notifications of a user: $user->notifications;
+    use Notifiable; // $user->notify(new SubscriptionRenewalFailed);
 
     /**
      * The attributes that are mass assignable.
@@ -37,16 +37,4 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
-
-    public function owns(Project $project) {
-        return $this->id == $project->owner_id;
-    }
-
-    public function isAdmin() {
-        return $this->id == 1;
-    }
-
-    public function projects() {
-        return $this->hasMany(Project::class, 'owner_id'); // select * from projects where owner_id = (default is user_id column name)
-    }
 }

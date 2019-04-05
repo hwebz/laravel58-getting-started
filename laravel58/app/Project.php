@@ -3,7 +3,8 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ProjectCreated;
 class Project extends Model
 {
     // protected $fillable = [
@@ -12,11 +13,27 @@ class Project extends Model
 
     protected $guarded = [];
 
+    protected static function boot() {
+        parent::boot();
+
+        // calling when created method completed
+        static::created(function ($project) { // updated, deleted
+            // Mail::to($project->owner->email)->send(
+            //     new ProjectCreated($project)
+            // );
+            // Move to listener event of ProjectCreated
+        });
+    }
+
     public function tasks() {
         return $this->hasMany(Task::class);
     }
 
     public function addTask($task) {
         $this->tasks()->create($task);
+    }
+
+    public function owner() {
+        return $this->belongsTo(User::class);
     }
 }
