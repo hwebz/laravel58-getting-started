@@ -25,9 +25,24 @@ Route::get('/', function (Request $request) {
     // return session('name', 'Default value');
     // session(['name' => 'John Doe']);
 
-    return $request->session()->get('name', 'Default value');
+    // return $request->session()->get('name', 'Default value');
 
     // $request->flash(); // get all data from previous request
 
     return view('welcome');
+});
+
+Route::get('/projects/create', function() {
+    return view('projects.create');
+});
+
+Route::post('/projects', function() {
+    // validate the project
+    // save the project
+
+    // session()->flash('message', 'Your project has been created.');
+    // func from app\helpers.php file
+    flash('Your project has been created.');
+
+    return redirect('/');
 });
